@@ -1,0 +1,63 @@
+package com.bagicode.games.chess
+
+import android.os.Bundle
+import android.widget.Button
+import android.widget.ImageButton
+import android.widget.RadioButton
+import android.widget.RadioGroup
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
+import com.bagicode.games.R
+import com.google.android.material.switchmaterial.SwitchMaterial
+
+class SettingsActivity : AppCompatActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_settings)
+
+        val backButton = findViewById<ImageButton>(R.id.backButton)
+        val mirrorSwitch = findViewById<SwitchMaterial>(R.id.mirrorSwitch)
+        val predictionSwitch = findViewById<SwitchMaterial>(R.id.predictionSwitch)
+        val timerSwitch = findViewById<SwitchMaterial>(R.id.timerSwitch)
+        val timerGroup = findViewById<RadioGroup>(R.id.timerDurationGroup)
+        val saveButton = findViewById<Button>(R.id.saveButton)
+
+        val prefs = getSharedPreferences("chess_prefs", MODE_PRIVATE)
+
+        // Load current settings
+        mirrorSwitch.isChecked = prefs.getBoolean("mirror_mode", true)
+        predictionSwitch.isChecked = prefs.getBoolean("prediction_enabled", true)
+        timerSwitch.isChecked = prefs.getBoolean("timer_enabled", true)
+
+        val currentDuration = prefs.getInt("timer_duration", 5)
+        when (currentDuration) {
+            5 -> findViewById<RadioButton>(R.id.radio5).isChecked = true
+            10 -> findViewById<RadioButton>(R.id.radio10).isChecked = true
+            15 -> findViewById<RadioButton>(R.id.radio15).isChecked = true
+        }
+
+        backButton.setOnClickListener {
+            finish()
+        }
+
+        saveButton.setOnClickListener {
+            val editor = prefs.edit()
+            editor.putBoolean("mirror_mode", mirrorSwitch.isChecked)
+            editor.putBoolean("prediction_enabled", predictionSwitch.isChecked)
+            editor.putBoolean("timer_enabled", timerSwitch.isChecked)
+
+            val selectedDuration = when (timerGroup.checkedRadioButtonId) {
+                R.id.radio10 -> 10
+                R.id.radio15 -> 15
+                else -> 5
+            }
+            editor.putInt("timer_duration", selectedDuration)
+            editor.apply()
+
+            setResult(RESULT_OK)
+            finish()
+        }
+    }
+}
