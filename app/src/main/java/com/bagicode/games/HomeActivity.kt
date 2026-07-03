@@ -10,6 +10,7 @@ import com.bagicode.games.chess.ChessActivity
 import com.bagicode.games.chess.adapter.GameAdapter
 import com.bagicode.games.chess.model.GameMenu
 import com.bagicode.games.tictactoe.TicTacToeActivity
+import com.bagicode.games.ludo.LudoActivity
 
 class HomeActivity : AppCompatActivity() {
 
@@ -33,6 +34,12 @@ class HomeActivity : AppCompatActivity() {
                 description = "Classic 3x3 grid game",
                 iconRes = R.mipmap.ic_launcher,
                 activityClass = TicTacToeActivity::class.java
+            ),
+            GameMenu(
+                title = "Ludo",
+                description = "Classic race game for 2 players",
+                iconRes = R.mipmap.ic_launcher,
+                activityClass = LudoActivity::class.java
             )
         )
 

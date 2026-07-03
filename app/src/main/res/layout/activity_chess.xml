@@ -65,7 +65,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="8dp"/>
 
-    <com.bagicode.games.chess.ChessView
+    <com.bagicode.games.chess.view.ChessView
         android:id="@+id/chessView"
         android:layout_width="0dp"
         android:layout_height="0dp"
