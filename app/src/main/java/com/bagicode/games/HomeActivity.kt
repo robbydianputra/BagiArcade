@@ -26,19 +26,19 @@ class HomeActivity : AppCompatActivity() {
             GameMenu(
                 title = "Chess",
                 description = "2 Player Local PvP with standard rules",
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.ic_chess,
                 activityClass = ChessActivity::class.java
             ),
             GameMenu(
                 title = "Tic-Tac-Toe",
                 description = "Classic 3x3 grid game",
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.ic_tictactoe,
                 activityClass = TicTacToeActivity::class.java
             ),
             GameMenu(
                 title = "Ludo",
                 description = "Classic race game for 2 players",
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.ic_ludo,
                 activityClass = LudoActivity::class.java
             )
         )
