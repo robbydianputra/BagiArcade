@@ -11,6 +11,7 @@ import com.bagicode.games.chess.adapter.GameAdapter
 import com.bagicode.games.chess.model.GameMenu
 import com.bagicode.games.tictactoe.TicTacToeActivity
 import com.bagicode.games.ludo.LudoActivity
+import com.bagicode.games.colormatch.ColorMatchActivity
 
 class HomeActivity : AppCompatActivity() {
 
@@ -40,6 +41,12 @@ class HomeActivity : AppCompatActivity() {
                 description = "Classic race game for 2 players",
                 iconRes = R.drawable.ic_ludo,
                 activityClass = LudoActivity::class.java
+            ),
+            GameMenu(
+                title = "Color Match",
+                description = "Match fruits with crayon colors",
+                iconRes = R.drawable.ic_match_color,
+                activityClass = ColorMatchActivity::class.java
             )
         )
 
