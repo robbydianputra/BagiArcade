@@ -26,10 +26,16 @@ class HomeActivity : AppCompatActivity() {
 
         val games = listOf(
             GameMenu(
-                title = "Chess",
-                description = "2 Player Local PvP with standard rules",
-                iconRes = R.drawable.ic_chess,
-                activityClass = ChessActivity::class.java
+                title = "Color Match",
+                description = "Match fruits with crayon colors",
+                iconRes = R.drawable.ic_match_color,
+                activityClass = ColorMatchActivity::class.java
+            ),
+            GameMenu(
+                title = "Shape Match",
+                description = "Match objects with their shadows",
+                iconRes = R.drawable.ic_match_shape,
+                activityClass = ShapeMatchActivity::class.java
             ),
             GameMenu(
                 title = "Tic-Tac-Toe",
@@ -44,17 +50,11 @@ class HomeActivity : AppCompatActivity() {
                 activityClass = LudoActivity::class.java
             ),
             GameMenu(
-                title = "Color Match",
-                description = "Match fruits with crayon colors",
-                iconRes = R.drawable.ic_match_color,
-                activityClass = ColorMatchActivity::class.java
+                title = "Chess",
+                description = "2 Player Local PvP with standard rules",
+                iconRes = R.drawable.ic_chess,
+                activityClass = ChessActivity::class.java
             ),
-            GameMenu(
-                title = "Shape Match",
-                description = "Match objects with their shadows",
-                iconRes = R.drawable.ic_match_shape,
-                activityClass = ShapeMatchActivity::class.java
-            )
         )
 
         recyclerView.adapter = GameAdapter(games) { game ->
