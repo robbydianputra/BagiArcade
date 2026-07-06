@@ -11,23 +11,23 @@ data class MatchItem(val emoji: String, val color: Int, val colorName: String)
 class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        strokeWidth = 10f
+        strokeWidth = 30f
         style = Paint.Style.STROKE
         strokeCap = Paint.Cap.ROUND
     }
     
     private val itemPool = listOf(
-        MatchItem("🍓", Color.parseColor("#E53935"), "Red"),
+        MatchItem("🍓", Color.parseColor("#FE2B23"), "Red"),
         MatchItem("🍋", Color.parseColor("#FDD835"), "Yellow"),
-        MatchItem("🍇", Color.parseColor("#7B1FA2"), "Purple"),
-        MatchItem("🍏", Color.parseColor("#43A047"), "Green"),
-        MatchItem("🫐", Color.parseColor("#1E88E5"), "Blue"),
+        MatchItem("🍇", Color.parseColor("#A363B1"), "Purple"),
+        MatchItem("🍏", Color.parseColor("#87C244"), "Green"),
+        MatchItem("🫐", Color.parseColor("#6678D9"), "Blue"),
         MatchItem("🍊", Color.parseColor("#FB8C00"), "Orange"),
-        MatchItem("🍉", Color.parseColor("#D81B60"), "Pink"),
+        MatchItem("🍉", Color.parseColor("#FF6C75"), "Pink"),
         MatchItem("🍒", Color.parseColor("#B71C1C"), "Dark Red"),
-        MatchItem("🍆", Color.parseColor("#4A148C"), "Dark Purple"),
-        MatchItem("🍈", Color.parseColor("#81C784"), "Light Green"),
-        MatchItem("🧄", Color.parseColor("#CFD8DC"), "White")
+        MatchItem("🍆", Color.parseColor("#8E2F97"), "Dark Purple"),
+        MatchItem("🍈", Color.parseColor("#EFE4AF"), "Light Green"),
+        MatchItem("🧄", Color.parseColor("#E5C8CC"), "White")
     )
 
     private var leftItems = mutableListOf<MatchItem>()
@@ -65,9 +65,9 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
             paint.color = Color.BLACK
             canvas.drawText(leftItems[i].emoji, w * 0.15f, centerY + paint.textSize / 3, paint)
             
-            // Left Dot
+            // Left Dot and Resize circle
             paint.color = Color.parseColor("#37474F")
-            canvas.drawCircle(w * 0.35f, centerY, 20f, paint)
+            canvas.drawCircle(w * 0.35f, centerY, 40f, paint)
         }
 
         // Draw Right Items (Crayons)
@@ -75,9 +75,9 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
             val centerY = (i + 1) * itemH
             drawCrayon(canvas, w * 0.85f, centerY, itemH * 0.6f, rightItems[i].color)
             
-            // Right Dot
+            // Right Dot and Resize circle
             paint.color = Color.parseColor("#37474F")
-            canvas.drawCircle(w * 0.65f, centerY, 20f, paint)
+            canvas.drawCircle(w * 0.65f, centerY, 40f, paint)
         }
 
         // Draw established connections
