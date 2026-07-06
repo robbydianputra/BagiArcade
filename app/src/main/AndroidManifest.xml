@@ -26,6 +26,7 @@
         <activity android:name=".tictactoe.TicTacToeActivity" />
         <activity android:name=".ludo.LudoActivity" />
         <activity android:name=".colormatch.ColorMatchActivity" />
+        <activity android:name=".shapematch.ShapeMatchActivity" />
 
     </application>
 
