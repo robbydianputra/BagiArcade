@@ -27,6 +27,8 @@
         <activity android:name=".ludo.LudoActivity" />
         <activity android:name=".colormatch.ColorMatchActivity" />
         <activity android:name=".shapematch.ShapeMatchActivity" />
+        <activity android:name=".numbermatch.NumberMatchActivity" />
+        <activity android:name=".numbermatch.SettingNumberMatchActivity" />
 
     </application>
 

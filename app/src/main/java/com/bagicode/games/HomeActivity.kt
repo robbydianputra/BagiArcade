@@ -12,6 +12,7 @@ import com.bagicode.games.chess.model.GameMenu
 import com.bagicode.games.tictactoe.TicTacToeActivity
 import com.bagicode.games.ludo.LudoActivity
 import com.bagicode.games.colormatch.ColorMatchActivity
+import com.bagicode.games.numbermatch.NumberMatchActivity
 import com.bagicode.games.shapematch.ShapeMatchActivity
 
 class HomeActivity : AppCompatActivity() {
@@ -36,6 +37,12 @@ class HomeActivity : AppCompatActivity() {
                 description = "Match objects with their shadows",
                 iconRes = R.drawable.ic_match_shape,
                 activityClass = ShapeMatchActivity::class.java
+            ),
+            GameMenu(
+                title = "Number Match",
+                description = "Match objects with their shadows",
+                iconRes = R.mipmap.ic_launcher_round,
+                activityClass = NumberMatchActivity::class.java
             ),
             GameMenu(
                 title = "Tic-Tac-Toe",
