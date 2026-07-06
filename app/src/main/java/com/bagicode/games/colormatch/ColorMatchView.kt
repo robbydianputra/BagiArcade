@@ -9,6 +9,7 @@ import android.view.View
 data class MatchItem(val emoji: String, val color: Int, val colorName: String)
 
 class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
+    val countItem = 3
     private val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val linePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         strokeWidth = 30f
@@ -44,7 +45,7 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
     }
 
     fun nextLevel() {
-        val shuffled = itemPool.shuffled().take(3)
+        val shuffled = itemPool.shuffled().take(countItem)
         leftItems = shuffled.toMutableList()
         rightItems = shuffled.shuffled().toMutableList()
         connections.clear()
@@ -60,10 +61,10 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
         // Draw Left Items (Fruits)
         paint.textSize = itemH * 0.5f
         paint.textAlign = Paint.Align.CENTER
-        for (i in 0 until 3) {
+        for (i in 0 until countItem) {
             val centerY = (i + 1) * itemH
             paint.color = Color.BLACK
-            canvas.drawText(leftItems[i].emoji, w * 0.15f, centerY + paint.textSize / 3, paint)
+            canvas.drawText(leftItems[i].emoji, w * 0.15f, centerY + paint.textSize / countItem, paint)
             
             // Left Dot and Resize circle
             paint.color = Color.parseColor("#37474F")
@@ -71,7 +72,7 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
         }
 
         // Draw Right Items (Crayons)
-        for (i in 0 until 3) {
+        for (i in 0 until countItem) {
             val centerY = (i + 1) * itemH
             drawCrayon(canvas, w * 0.85f, centerY, itemH * 0.6f, rightItems[i].color)
             
@@ -130,7 +131,7 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
 
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                for (i in 0 until 3) {
+                for (i in 0 until countItem) {
                     val dotY = (i + 1) * itemH
                     if (Math.abs(event.x - w * 0.35f) < 80f && Math.abs(event.y - dotY) < 80f) {
                         activeStartIdx = i
@@ -150,7 +151,7 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
             }
             MotionEvent.ACTION_UP -> {
                 activeStartIdx?.let { l ->
-                    for (i in 0 until 3) {
+                    for (i in 0 until countItem) {
                         val dotY = (i + 1) * itemH
                         if (Math.abs(event.x - w * 0.65f) < 80f && Math.abs(event.y - dotY) < 80f) {
                             if (leftItems[l].color == rightItems[i].color) {
@@ -169,7 +170,7 @@ class ColorMatchView(context: Context, attrs: AttributeSet?) : View(context, att
     }
 
     private fun checkWin() {
-        if (connections.size == 3) {
+        if (connections.size == countItem) {
             onAllMatched?.invoke()
         }
     }
