@@ -20,6 +20,12 @@ class NumberCanvasView @JvmOverloads constructor(
     private val numbers = mutableListOf<SmallNumber>()
     private var targetNumber = 1
 
+    private var gameListener: GameListener? = null
+
+    fun setGameListener(listener: GameListener){
+        this.gameListener = listener
+    }
+
     private val bigTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 1800f
         color = Color.BLACK
@@ -27,8 +33,8 @@ class NumberCanvasView @JvmOverloads constructor(
     }
 
     private val smallTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-        textSize = 48f
-        color = Color.BLACK
+        textSize = 80f
+        color = Color.WHITE
         textAlign = Paint.Align.CENTER
     }
 
@@ -51,22 +57,21 @@ class NumberCanvasView @JvmOverloads constructor(
 
         // draw BIG NUMBER
         canvas.drawPath(numberPath, Paint().apply {
-            color = Color.parseColor("#FFE082")
+            color = Color.parseColor("#000000")
             style = Paint.Style.FILL
         })
-
         canvas.drawPath(numberPath, Paint().apply {
             color = Color.BLACK
             style = Paint.Style.STROKE
             strokeWidth = 10f
         })
 
+        // draw SMALL Number
         numbers.forEach {
-
             val paint = when {
                 it.found -> smallTextPaint.apply { color = Color.GREEN }
                 it.wrong -> smallTextPaint.apply { color = Color.RED }
-                else -> smallTextPaint.apply { color = Color.BLACK }
+                else -> smallTextPaint.apply { color = Color.WHITE }
             }
 
             canvas.drawText(
@@ -88,6 +93,7 @@ class NumberCanvasView @JvmOverloads constructor(
             if (dx * dx + dy * dy < 60f * 60f) {
                 if (item.value == targetNumber) {
                     item.found = true
+                    checkGameComplete()
                 } else {
                     item.wrong = true
                     postDelayed({
@@ -181,8 +187,22 @@ class NumberCanvasView @JvmOverloads constructor(
             val dx = x - it.x
             val dy = y - it.y
             val dist = dx * dx + dy * dy
-            if (dist < 100f * 100f) return true
+            if (dist < 200f * 200f) return true
         }
         return false
+    }
+
+    private fun checkGameComplete(){
+        val remaining = numbers.any {
+            it.value == targetNumber && !it.found
+        }
+
+        if(!remaining){
+            gameListener?.onGameComplete()
+        }
+    }
+
+    interface GameListener {
+        fun onGameComplete()
     }
 }
