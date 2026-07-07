@@ -24,7 +24,7 @@ class NumberMatchActivity : AppCompatActivity() {
             tvTarget.setText("Cari semua angka $randomDraft")
 
             // 🔁 ulang 30 detik lagi
-            handler.postDelayed(this, 30_000)
+            handler.postDelayed(this, 60_000)
         }
     }
 
@@ -76,7 +76,7 @@ class NumberMatchActivity : AppCompatActivity() {
 
     private fun startTimer() {
         handler.removeCallbacks(regenerateRunnable)
-        handler.postDelayed(regenerateRunnable, 30_000)
+        handler.postDelayed(regenerateRunnable, 60_000)
     }
 
     private fun stopTimer() {

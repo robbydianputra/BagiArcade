@@ -26,6 +26,59 @@ class NumberCanvasView @JvmOverloads constructor(
         this.gameListener = listener
     }
 
+    private val themes = listOf(
+        // Montessori
+        NumberTheme(
+            backgroundColor = Color.parseColor("#FAF8F3"),
+            shapeColor = Color.parseColor("#F4D35E"),
+            outlineColor = Color.parseColor("#555555"),
+            numberColor = Color.parseColor("#2E2E2E"),
+            successColor = Color.parseColor("#43A047"),
+            errorColor = Color.parseColor("#E53935")
+        ),
+
+        // Ocean
+        NumberTheme(
+            backgroundColor = Color.parseColor("#F3FAFF"),
+            shapeColor = Color.parseColor("#7FB3D5"),
+            outlineColor = Color.parseColor("#2C3E50"),
+            numberColor = Color.parseColor("#1B2631"),
+            successColor = Color.parseColor("#2ECC71"),
+            errorColor = Color.parseColor("#E74C3C")
+        ),
+
+        // Forest
+        NumberTheme(
+            backgroundColor = Color.parseColor("#F6FBF4"),
+            shapeColor = Color.parseColor("#81C784"),
+            outlineColor = Color.parseColor("#33691E"),
+            numberColor = Color.parseColor("#263238"),
+            successColor = Color.parseColor("#2E7D32"),
+            errorColor = Color.parseColor("#C62828")
+        ),
+
+        // Candy
+        NumberTheme(
+            backgroundColor = Color.parseColor("#FFF5FB"),
+            shapeColor = Color.parseColor("#F8BBD0"),
+            outlineColor = Color.parseColor("#AD1457"),
+            numberColor = Color.parseColor("#4A148C"),
+            successColor = Color.parseColor("#66BB6A"),
+            errorColor = Color.parseColor("#EF5350")
+        ),
+
+        // Sunset
+        NumberTheme(
+            backgroundColor = Color.parseColor("#FFF8F0"),
+            shapeColor = Color.parseColor("#FFB74D"),
+            outlineColor = Color.parseColor("#6D4C41"),
+            numberColor = Color.parseColor("#3E2723"),
+            successColor = Color.parseColor("#4CAF50"),
+            errorColor = Color.parseColor("#E53935")
+        )
+    )
+    private var currentTheme = themes.random()
+
     private val bigTextPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textSize = 1800f
         color = Color.BLACK
@@ -43,6 +96,7 @@ class NumberCanvasView @JvmOverloads constructor(
 
     fun setTargetNumber(number: Int) {
         targetNumber = number
+        currentTheme = themes.random()
         generateLevel()
         invalidate()
     }
@@ -56,22 +110,34 @@ class NumberCanvasView @JvmOverloads constructor(
         super.onDraw(canvas)
 
         // draw BIG NUMBER
-        canvas.drawPath(numberPath, Paint().apply {
-            color = Color.parseColor("#000000")
+        val shapePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = currentTheme.shapeColor
             style = Paint.Style.FILL
-        })
+        }
+//        shapePaint.alpha = 190
+        canvas.drawPath(numberPath, shapePaint)
+
         canvas.drawPath(numberPath, Paint().apply {
-            color = Color.BLACK
+            color = currentTheme.shapeColor
             style = Paint.Style.STROKE
-            strokeWidth = 10f
+            strokeWidth = 40f
         })
 
         // draw SMALL Number
         numbers.forEach {
             val paint = when {
-                it.found -> smallTextPaint.apply { color = Color.GREEN }
-                it.wrong -> smallTextPaint.apply { color = Color.RED }
-                else -> smallTextPaint.apply { color = Color.WHITE }
+                it.found -> smallTextPaint.apply {
+                    color = currentTheme.successColor
+                }
+
+                it.wrong -> smallTextPaint.apply {
+                    color = currentTheme.errorColor
+                }
+
+                else -> smallTextPaint.apply {
+                    color = currentTheme.numberColor
+                }
+
             }
 
             canvas.drawText(
