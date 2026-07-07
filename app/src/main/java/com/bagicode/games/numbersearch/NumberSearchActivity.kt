@@ -17,6 +17,7 @@ class NumberSearchActivity : AppCompatActivity() {
         setContentView(R.layout.activity_number_search)
 
         val exitButton = findViewById<ImageButton>(R.id.exitButton)
+        val numberSearchView = findViewById<NumberSearchView>(R.id.numberSearchView)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
@@ -26,11 +27,29 @@ class NumberSearchActivity : AppCompatActivity() {
 
         exitButton.setOnClickListener { confirmExit() }
         
+        numberSearchView.onWin = {
+            showWinDialog()
+        }
+
         onBackPressedDispatcher.addCallback(this, object : androidx.activity.OnBackPressedCallback(true) {
             override fun handleOnBackPressed() {
                 confirmExit()
             }
         })
+    }
+
+    private fun showWinDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Hebat!")
+            .setMessage("Kamu berhasil menemukan semua angka!")
+            .setCancelable(false)
+            .setPositiveButton("Main Lagi") { _, _ ->
+                findViewById<NumberSearchView>(R.id.numberSearchView).nextLevel()
+            }
+            .setNegativeButton("Keluar") { _, _ ->
+                finish()
+            }
+            .show()
     }
 
     private fun confirmExit() {

@@ -5,6 +5,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import kotlin.random.Random
 
 data class Marker(
     val value: Int,
@@ -12,7 +13,8 @@ data class Marker(
     var x: Float,
     var y: Float,
     var isDragging: Boolean = false,
-    var placedCell: Pair<Int, Int>? = null
+    var placedCell: Pair<Int, Int>? = null,
+    var isTrayMarker: Boolean = false
 )
 
 class NumberSearchView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
@@ -23,60 +25,83 @@ class NumberSearchView(context: Context, attrs: AttributeSet?) : View(context, a
     }
     
     private val columns = 5
-    private val rows = 5
+    private val rows = 6 // 1 header + 5 grid rows
     private var cellSize = 0f
     
     private val gridNumbers = Array(rows) { IntArray(columns) }
-    private val targetColors = listOf(
-        Color.parseColor("#3949AB"), // 20 - Blue
-        Color.parseColor("#F06292"), // 70 - Pink
-        Color.parseColor("#9C27B0"), // 50 - Purple
-        Color.parseColor("#424242"), // 80 - Grey
-        Color.parseColor("#FB8C00"), // 10 - Orange
-        Color.parseColor("#E53935"), // 40 - Red
-        Color.parseColor("#00ACC1"), // 100 - Teal
-        Color.parseColor("#43A047"), // 30 - Green
-        Color.parseColor("#880E4F"), // 60 - Maroon
-        Color.parseColor("#FDD835")  // 90 - Yellow
+    private val colorPool = listOf(
+        Color.parseColor("#3949AB"), // Blue
+        Color.parseColor("#F06292"), // Pink
+        Color.parseColor("#9C27B0"), // Purple
+        Color.parseColor("#424242"), // Grey
+        Color.parseColor("#FB8C00"), // Orange
+        Color.parseColor("#E53935"), // Red
+        Color.parseColor("#00ACC1"), // Teal
+        Color.parseColor("#43A047"), // Green
+        Color.parseColor("#880E4F"), // Maroon
+        Color.parseColor("#FDD835")  // Yellow
     )
-    private val targetValues = listOf(20, 70, 50, 80, 10, 40, 100, 30, 60, 90)
+    
+    private var currentLevelTargets = mutableListOf<Int>()
+    private var currentLevelColors = mutableListOf<Int>()
     
     private val markers = mutableListOf<Marker>()
     private var activeMarker: Marker? = null
 
+    var onWin: (() -> Unit)? = null
+
     init {
-        generateGrid()
+        nextLevel()
     }
 
-    private fun generateGrid() {
-        val baseValues = listOf(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+    fun nextLevel() {
+        val allNumbers = listOf(10, 20, 30, 40, 50, 60, 70, 80, 90, 100)
+        val selected = allNumbers.shuffled().take(columns)
+        currentLevelTargets.clear()
+        currentLevelTargets.addAll(selected)
+        
+        currentLevelColors.clear()
+        currentLevelColors.addAll(colorPool.shuffled().take(columns))
+        
+        // Generate grid
         for (r in 0 until rows) {
             for (c in 0 until columns) {
                 if (r == 0) {
-                    gridNumbers[r][c] = targetValues[c]
+                    gridNumbers[r][c] = currentLevelTargets[c]
                 } else {
-                    gridNumbers[r][c] = baseValues[(c + r) % 10]
+                    // Randomly pick from current targets to ensure they appear
+                    gridNumbers[r][c] = currentLevelTargets[Random.nextInt(columns)]
                 }
             }
+        }
+        
+        markers.clear()
+        if (width > 0) {
+            setupTray()
+        }
+        invalidate()
+    }
+
+    private fun setupTray() {
+        val trayY = cellSize * (rows + 1)
+        for (i in 0 until columns) {
+            markers.add(
+                Marker(
+                    value = currentLevelTargets[i],
+                    color = currentLevelColors[i],
+                    x = (i + 0.5f) * cellSize,
+                    y = trayY,
+                    isTrayMarker = true
+                )
+            )
         }
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         cellSize = w.toFloat() / columns
-        
         if (markers.isEmpty()) {
-            val trayY = cellSize * (rows + 1)
-            for (i in targetValues.indices) {
-                markers.add(
-                    Marker(
-                        value = targetValues[i],
-                        color = targetColors[i],
-                        x = (i + 0.5f) * cellSize,
-                        y = trayY
-                    )
-                )
-            }
+            setupTray()
         }
     }
 
@@ -102,7 +127,7 @@ class NumberSearchView(context: Context, attrs: AttributeSet?) : View(context, a
                 canvas.drawRect(left, top, right, bottom, paint)
                 
                 if (r == 0) {
-                    textPaint.color = targetColors[c]
+                    textPaint.color = currentLevelColors[c]
                 } else {
                     textPaint.color = Color.DKGRAY
                 }
@@ -135,10 +160,15 @@ class NumberSearchView(context: Context, attrs: AttributeSet?) : View(context, a
     override fun onTouchEvent(event: MotionEvent): Boolean {
         when (event.action) {
             MotionEvent.ACTION_DOWN -> {
-                activeMarker = markers.findLast { marker ->
-                    marker.placedCell == null && Math.hypot((event.x - marker.x).toDouble(), (event.y - marker.y).toDouble()) < cellSize * 0.5
+                // Find a tray marker to drag
+                activeMarker = markers.findLast { it.isTrayMarker && Math.hypot((event.x - it.x).toDouble(), (event.y - it.y).toDouble()) < cellSize * 0.5 }
+                
+                activeMarker?.let {
+                    // Create a copy to drag so tray marker stays (or we decide based on logic)
+                    val newMarker = it.copy(isTrayMarker = false, isDragging = true)
+                    markers.add(newMarker)
+                    activeMarker = newMarker
                 }
-                activeMarker?.isDragging = true
                 invalidate()
             }
             MotionEvent.ACTION_MOVE -> {
@@ -153,32 +183,54 @@ class NumberSearchView(context: Context, attrs: AttributeSet?) : View(context, a
                     val col = (marker.x / cellSize).toInt()
                     val row = (marker.y / cellSize).toInt()
                     
-                    if (row in 1 until rows && col in 0 until columns && gridNumbers[row][col] == marker.value) {
+                    // Check if dropped on correct grid cell
+                    val isCorrect = row in 1 until rows && col in 0 until columns && 
+                                    gridNumbers[row][col] == marker.value &&
+                                    markers.none { it.placedCell == (row to col) }
+
+                    if (isCorrect) {
                         marker.x = (col + 0.5f) * cellSize
                         marker.y = (row + 0.5f) * cellSize
                         marker.placedCell = row to col
+                        marker.isDragging = false
                         
-                        val trayY = cellSize * (rows + 1)
-                        val originalIdx = targetValues.indexOf(marker.value)
-                        markers.add(0, Marker(
-                            value = marker.value,
-                            color = marker.color,
-                            x = (originalIdx + 0.5f) * cellSize,
-                            y = trayY
-                        ))
+                        checkTrayVisibility(marker.value)
                     } else {
-                        val originalIdx = targetValues.indexOf(marker.value)
-                        marker.x = (originalIdx + 0.5f) * cellSize
-                        marker.y = cellSize * (rows + 1)
+                        markers.remove(marker)
                     }
-                    marker.isDragging = false
+                    
                     activeMarker = null
                     invalidate()
+                    checkWin()
                     performClick()
                 }
             }
         }
         return true
+    }
+
+    private fun checkTrayVisibility(value: Int) {
+        // Count how many times this value appears in the grid (rows 1 to 5)
+        var totalInGrid = 0
+        for (r in 1 until rows) {
+            for (c in 0 until columns) {
+                if (gridNumbers[r][c] == value) totalInGrid++
+            }
+        }
+        
+        // Count how many are covered
+        val covered = markers.count { it.value == value && it.placedCell != null }
+        
+        if (covered >= totalInGrid) {
+            // Remove from tray
+            markers.removeAll { it.isTrayMarker && it.value == value }
+        }
+    }
+
+    private fun checkWin() {
+        if (markers.none { it.isTrayMarker }) {
+            onWin?.invoke()
+        }
     }
     
     override fun performClick(): Boolean {
