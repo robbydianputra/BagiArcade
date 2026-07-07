@@ -176,6 +176,9 @@ class NumberCanvasView @JvmOverloads constructor(
 
             placed++
         }
+        numbers[1] = numbers[1].copy(
+            value = targetNumber
+        )
     }
 
     private fun isInsideShape(x: Int, y: Int): Boolean {
