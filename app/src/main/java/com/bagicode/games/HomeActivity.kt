@@ -13,6 +13,7 @@ import com.bagicode.games.tictactoe.TicTacToeActivity
 import com.bagicode.games.ludo.LudoActivity
 import com.bagicode.games.colormatch.ColorMatchActivity
 import com.bagicode.games.numbermatch.NumberMatchActivity
+import com.bagicode.games.numbersearch.NumberSearchActivity
 import com.bagicode.games.shapematch.ShapeMatchActivity
 
 class HomeActivity : AppCompatActivity() {
@@ -40,9 +41,15 @@ class HomeActivity : AppCompatActivity() {
             ),
             GameMenu(
                 title = "Number Match",
-                description = "Match objects with their shadows",
+                description = "Find numbers hidden inside big shapes",
                 iconRes = R.mipmap.ic_launcher_round,
                 activityClass = NumberMatchActivity::class.java
+            ),
+            GameMenu(
+                title = "Number Search",
+                description = "Find and mark numbers with colored discs",
+                iconRes = R.mipmap.ic_launcher_round,
+                activityClass = NumberSearchActivity::class.java
             ),
             GameMenu(
                 title = "Tic-Tac-Toe",
