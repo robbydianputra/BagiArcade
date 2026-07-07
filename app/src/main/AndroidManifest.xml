@@ -30,6 +30,7 @@
         <activity android:name=".numbermatch.NumberMatchActivity" />
         <activity android:name=".numbermatch.SettingNumberMatchActivity" />
         <activity android:name=".numbersearch.NumberSearchActivity" />
+        <activity android:name=".writing.WritingActivity" />
 
     </application>
 

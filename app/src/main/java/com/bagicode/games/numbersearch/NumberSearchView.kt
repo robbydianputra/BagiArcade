@@ -202,7 +202,6 @@ class NumberSearchView(context: Context, attrs: AttributeSet?) : View(context, a
                     activeMarker = null
                     invalidate()
                     checkWin()
-                    performClick()
                 }
             }
         }
