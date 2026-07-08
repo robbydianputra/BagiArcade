@@ -2,8 +2,11 @@ package com.bagicode.games
 
 import android.content.Intent
 import android.os.Bundle
+import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.SearchView
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bagicode.games.chess.ChessActivity
@@ -19,15 +22,20 @@ import com.bagicode.games.shapematch.ShapeMatchActivity
 
 class HomeActivity : AppCompatActivity() {
 
+    private lateinit var adapter: GameAdapter
+    private lateinit var allGames: List<GameMenu>
+    private var isGridView = false
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_home)
 
         val recyclerView = findViewById<RecyclerView>(R.id.menuRecyclerView)
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        val searchView = findViewById<SearchView>(R.id.searchView)
+        val layoutButton = findViewById<ImageButton>(R.id.layoutToggleButton)
 
-        val games = listOf(
+        allGames = listOf(
             GameMenu(
                 title = "Color Match",
                 description = "Match fruits with crayon colors",
@@ -78,9 +86,41 @@ class HomeActivity : AppCompatActivity() {
             ),
         )
 
-        recyclerView.adapter = GameAdapter(games) { game ->
+        adapter = GameAdapter(allGames) { game ->
             val intent = Intent(this, game.activityClass)
             startActivity(intent)
         }
+        
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.adapter = adapter
+
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean = false
+            override fun onQueryTextChange(newText: String?): Boolean {
+                filterGames(newText)
+                return true
+            }
+        })
+
+        layoutButton.setOnClickListener {
+            isGridView = !isGridView
+            if (isGridView) {
+                recyclerView.layoutManager = GridLayoutManager(this, 2)
+                layoutButton.setImageResource(R.drawable.ic_view_list)
+            } else {
+                recyclerView.layoutManager = LinearLayoutManager(this)
+                layoutButton.setImageResource(R.drawable.ic_view_grid)
+            }
+            adapter.isGridView = isGridView
+        }
+    }
+
+    private fun filterGames(query: String?) {
+        val filteredList = if (query.isNullOrEmpty()) {
+            allGames
+        } else {
+            allGames.filter { it.title.contains(query, ignoreCase = true) }
+        }
+        adapter.updateList(filteredList)
     }
 }
