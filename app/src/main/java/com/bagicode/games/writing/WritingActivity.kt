@@ -23,8 +23,8 @@ class WritingActivity : AppCompatActivity() {
         setContentView(R.layout.activity_writing)
 
         writingView = findViewById(R.id.writingView)
-        val clearBtn = findViewById<Button>(R.id.clearButton)
-        val checkBtn = findViewById<Button>(R.id.checkButton)
+        val clearBtn = findViewById<ImageButton>(R.id.clearButton)
+        val checkBtn = findViewById<ImageButton>(R.id.checkButton)
         val exitBtn = findViewById<ImageButton>(R.id.exitButton)
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
@@ -53,7 +53,7 @@ class WritingActivity : AppCompatActivity() {
     }
 
     private fun nextNumber() {
-        currentNum = Random.nextInt(0, 10)
+        currentNum = Random.nextInt(0, 9)
         writingView.setNumber(currentNum)
     }
 

@@ -1,24 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
+<androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/main"
     android:orientation="vertical"
     android:background="#4D000000"
+    android:padding="16dp"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <ImageButton
+        android:id="@+id/exitButton"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/ic_back"
+        android:tint="@color/white"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Exit"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"/>
+
+    <TextView
+        android:id="@+id/titleText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Cari Angka"
+        android:textSize="24sp"
+        android:textStyle="bold"
+        android:textColor="#FFF"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp"/>
+
     <TextView
         android:id="@+id/tvTarget"
-        android:text="Cari Semua Angka 1"
-        android:textStyle="bold"
-        android:textSize="22sp"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Ayo temukan Angka 1 kecil pada 1 besar"
+        android:textSize="14sp"
         android:gravity="center"
-        android:padding="16dp"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_marginTop="8dp"
+        android:textColor="#FFF"
+        app:layout_constraintTop_toBottomOf="@id/titleText"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
     <com.bagicode.games.numbermatch.NumberCanvasView
         android:id="@+id/gameNumberView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="0dp"
+        android:layout_marginVertical="24dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTarget"
+        app:layout_constraintBottom_toBottomOf="parent" />
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

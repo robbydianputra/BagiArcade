@@ -3,10 +3,13 @@ package com.bagicode.games.numbermatch
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.widget.ImageButton
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import com.bagicode.games.R
 
 class NumberMatchActivity : AppCompatActivity() {
@@ -21,7 +24,7 @@ class NumberMatchActivity : AppCompatActivity() {
             // 🔥 RE-RANDOM POSISI ANGKA
             val randomDraft = randomDraftNumber()
             gameNumberView.setTargetNumber(randomDraft)
-            tvTarget.setText("Cari semua angka $randomDraft")
+            tvTarget.setText("Ayo temukan Angka $randomDraft kecil pada $randomDraft besar")
 
             // 🔁 ulang 30 detik lagi
             handler.postDelayed(this, 60_000)
@@ -33,8 +36,15 @@ class NumberMatchActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_number_match)
 
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+
         tvTarget = findViewById<TextView>(R.id.tvTarget)
         gameNumberView = findViewById<NumberCanvasView>(R.id.gameNumberView)
+        val exitButton = findViewById<ImageButton>(R.id.exitButton)
 
         gameNumberView.setTargetNumber(1)
         gameNumberView.setGameListener(
@@ -45,6 +55,8 @@ class NumberMatchActivity : AppCompatActivity() {
                 }
             }
         )
+
+        exitButton.setOnClickListener { confirmExit() }
 
         startTimer()
     }
@@ -62,7 +74,7 @@ class NumberMatchActivity : AppCompatActivity() {
             .setCancelable(false)
             .setPositiveButton("Next"){ dialog, _ ->
                 dialog.dismiss()
-                tvTarget.setText("Cari semua angka $randomDraft")
+                tvTarget.setText("Ayo temukan Angka $randomDraft kecil pada $randomDraft besar")
                 gameNumberView.setTargetNumber(randomDraft)
                 startTimer()
             }
@@ -81,5 +93,14 @@ class NumberMatchActivity : AppCompatActivity() {
 
     private fun stopTimer() {
         handler.removeCallbacks(regenerateRunnable)
+    }
+
+    private fun confirmExit() {
+        AlertDialog.Builder(this)
+            .setTitle("Keluar Game")
+            .setMessage("Apakah Anda yakin ingin berhenti bermain?")
+            .setPositiveButton("Ya") { _, _ -> finish() }
+            .setNegativeButton("Tidak", null)
+            .show()
     }
 }

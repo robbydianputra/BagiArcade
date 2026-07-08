@@ -51,19 +51,19 @@ class HomeActivity : AppCompatActivity() {
             GameMenu(
                 title = "Number Match",
                 description = "Find numbers hidden inside big shapes",
-                iconRes = R.mipmap.ic_launcher_round,
+                iconRes = R.drawable.ic_number_match,
                 activityClass = NumberMatchActivity::class.java
             ),
             GameMenu(
                 title = "Number Search",
                 description = "Find and mark numbers with colored discs",
-                iconRes = R.mipmap.ic_launcher_round,
+                iconRes = R.drawable.ic_number_search,
                 activityClass = NumberSearchActivity::class.java
             ),
             GameMenu(
-                title = "Learn Writing",
+                title = "Number Writing",
                 description = "Learn to write numbers correctly",
-                iconRes = R.mipmap.ic_launcher_round,
+                iconRes = R.drawable.ic_number_writing,
                 activityClass = WritingActivity::class.java
             ),
             GameMenu(
