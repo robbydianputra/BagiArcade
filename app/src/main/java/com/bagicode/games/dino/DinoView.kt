@@ -5,6 +5,7 @@ import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import com.bagicode.games.R
 import kotlin.random.Random
 
 class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
@@ -28,6 +29,14 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private var nextObstacleTimer = 0
     
     var onGameOver: ((Int) -> Unit)? = null
+
+    private val dinoRun1 = BitmapFactory.decodeResource(resources, R.drawable.dino_run1)
+    private val dinoRun2 = BitmapFactory.decodeResource(resources, R.drawable.dino_run2)
+    private val dinoJump = BitmapFactory.decodeResource(resources, R.drawable.dino_jump)
+    private val dinoDead = BitmapFactory.decodeResource(resources, R.drawable.dino_dead)
+//    private val cactusBitmap =
+//        BitmapFactory.decodeResource(resources, R.drawable.cactus)
+    private var frame = 0
 
     init {
         paint.typeface = Typeface.DEFAULT_BOLD
@@ -84,8 +93,18 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         nextObstacleTimer--
         if (nextObstacleTimer <= 0) {
             val obstacleWidth = dinoSize * 0.6f
-            val obstacleHeight = dinoSize * (0.5f + Random.nextFloat())
-            obstacles.add(RectF(width.toFloat(), groundY - obstacleHeight, width.toFloat() + obstacleWidth, groundY))
+//            val obstacleHeight = dinoSize * (0.5f + Random.nextFloat())
+//            obstacles.add(RectF(width.toFloat(), groundY - obstacleHeight, width.toFloat() + obstacleWidth, groundY))
+
+            val obstacleHeight = dinoSize
+            obstacles.add(
+                RectF(
+                    width.toFloat(),
+                    groundY - obstacleHeight,
+                    width.toFloat() + obstacleWidth,
+                    groundY
+                )
+            )
             nextObstacleTimer = (40 + Random.nextInt(40)).coerceAtLeast((2000 / gameSpeed).toInt())
         }
 
@@ -121,15 +140,58 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         canvas.drawLine(0f, groundY, width.toFloat(), groundY, paint)
     }
 
+//    private fun drawDino(canvas: Canvas) {
+//        paint.color = Color.parseColor("#535353")
+//        val x = width * 0.2f
+//        // Simplified Dino Shape (Square-ish)
+//        canvas.drawRect(x, dinoY - dinoSize, x + dinoSize, dinoY, paint)
+//
+//        // Add an eye
+//        paint.color = Color.WHITE
+//        canvas.drawCircle(x + dinoSize * 0.7f, dinoY - dinoSize * 0.8f, dinoSize * 0.1f, paint)
+//    }
+
     private fun drawDino(canvas: Canvas) {
-        paint.color = Color.parseColor("#535353")
+
+
         val x = width * 0.2f
-        // Simplified Dino Shape (Square-ish)
-        canvas.drawRect(x, dinoY - dinoSize, x + dinoSize, dinoY, paint)
-        
-        // Add an eye
-        paint.color = Color.WHITE
-        canvas.drawCircle(x + dinoSize * 0.7f, dinoY - dinoSize * 0.8f, dinoSize * 0.1f, paint)
+
+
+        val bitmap = when {
+
+            !isPlaying -> {
+                dinoDead
+            }
+
+            isJumping -> {
+                dinoJump
+            }
+
+            else -> {
+
+                frame++
+
+                if(frame % 20 < 10)
+                    dinoRun1
+                else
+                    dinoRun2
+            }
+        }
+
+
+        val scaled =
+            scaleBitmap(
+                bitmap,
+                dinoSize
+            )
+
+
+        canvas.drawBitmap(
+            scaled,
+            x,
+            dinoY - dinoSize,
+            paint
+        )
     }
 
     private fun drawObstacles(canvas: Canvas) {
@@ -138,6 +200,30 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             canvas.drawRect(obs, paint)
         }
     }
+
+//    private fun drawObstacles(canvas: Canvas) {
+//
+//
+//        for(obs in obstacles){
+//
+//
+//            val cactus =
+//                Bitmap.createScaledBitmap(
+//                    cactusBitmap,
+//                    (obs.width()).toInt(),
+//                    (obs.height()).toInt(),
+//                    true
+//                )
+//
+//
+//            canvas.drawBitmap(
+//                cactus,
+//                obs.left,
+//                obs.top,
+//                paint
+//            )
+//        }
+//    }
 
     private fun drawScore(canvas: Canvas) {
         paint.color = Color.BLACK
@@ -168,5 +254,17 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     override fun performClick(): Boolean {
         super.performClick()
         return true
+    }
+
+    private fun scaleBitmap(
+        bitmap: Bitmap,
+        size: Float
+    ): Bitmap {
+        return Bitmap.createScaledBitmap(
+            bitmap,
+            size.toInt(),
+            size.toInt(),
+            true
+        )
     }
 }
