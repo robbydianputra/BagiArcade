@@ -15,6 +15,7 @@ import com.bagicode.games.chess.model.GameMenu
 import com.bagicode.games.tictactoe.TicTacToeActivity
 import com.bagicode.games.ludo.LudoActivity
 import com.bagicode.games.colormatch.ColorMatchActivity
+import com.bagicode.games.dino.DinoActivity
 import com.bagicode.games.numbermatch.NumberMatchActivity
 import com.bagicode.games.numbersearch.NumberSearchActivity
 import com.bagicode.games.writing.WritingActivity
@@ -83,6 +84,12 @@ class HomeActivity : AppCompatActivity() {
                 description = "2 Player Local PvP with standard rules",
                 iconRes = R.drawable.ic_chess,
                 activityClass = ChessActivity::class.java
+            ),
+            GameMenu(
+                title = "Dino",
+                description = "dino rules",
+                iconRes = R.drawable.ic_chess,
+                activityClass = DinoActivity::class.java
             ),
         )
 
