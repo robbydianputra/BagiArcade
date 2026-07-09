@@ -30,6 +30,7 @@ import com.bagicode.games.writing.WritingActivity
 import com.bagicode.games.shapematch.ShapeMatchActivity
 import com.bagicode.games.carrace.CarRaceActivity
 import com.bagicode.games.databinding.ActivityHomeBinding
+import com.bagicode.games.maze.MazeActivity
 import com.bagicode.games.repository.`interface`.ApiService
 import com.bagicode.games.update.model.UpdateData
 import com.bagicode.games.update.ui.UpdateDialog
@@ -121,6 +122,12 @@ class HomeActivity : AppCompatActivity() {
                 description = "Avoid obstacles and race to the finish",
                 iconRes = R.drawable.ic_car_race,
                 activityClass = CarRaceActivity::class.java
+            ),
+            GameMenu(
+                title = "Maze",
+                description = "lets go home",
+                iconRes = R.mipmap.ic_launcher_round,
+                activityClass = MazeActivity::class.java
             ),
         )
 

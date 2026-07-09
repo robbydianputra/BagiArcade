@@ -36,6 +36,7 @@
         <activity android:name=".writing.WritingActivity" />
         <activity android:name=".dino.DinoActivity" />
         <activity android:name=".carrace.CarRaceActivity" />
+        <activity android:name=".maze.MazeActivity" />
 
     </application>
 
