@@ -7,10 +7,6 @@ import android.os.CountDownTimer
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
-import android.widget.Button
-import android.widget.ImageButton
-import android.widget.LinearLayout
-import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -21,17 +17,11 @@ import androidx.core.view.WindowInsetsCompat
 import com.bagicode.games.R
 import com.bagicode.games.chess.model.PieceType
 import com.bagicode.games.chess.model.Player
-import com.bagicode.games.chess.view.ChessView
+import com.bagicode.games.databinding.ActivityChessBinding
 
 class ChessActivity : AppCompatActivity() {
     
-    private lateinit var chessView: ChessView
-    private lateinit var statusTextTop: TextView
-    private lateinit var statusTextBottom: TextView
-    private lateinit var timerText1: TextView
-    private lateinit var timerText2: TextView
-    private lateinit var player2Layout: LinearLayout
-    
+    private lateinit var binding: ActivityChessBinding
     private var timer1: CountDownTimer? = null
     private var timer2: CountDownTimer? = null
     
@@ -50,23 +40,10 @@ class ChessActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_chess)
+        binding = ActivityChessBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         
-        chessView = findViewById(R.id.chessView)
-        statusTextTop = findViewById(R.id.statusTextTop)
-        statusTextBottom = findViewById(R.id.statusTextBottom)
-        timerText1 = findViewById(R.id.player1Timer)
-        timerText2 = findViewById(R.id.player2Timer)
-        player2Layout = findViewById(R.id.player2Layout)
-        
-        val resign1 = findViewById<Button>(R.id.resignButton1)
-        val resign2 = findViewById<Button>(R.id.resignButton2)
-        val settingsButtonTop = findViewById<ImageButton>(R.id.settingsButtonTop)
-        val settingsButtonBottom = findViewById<ImageButton>(R.id.settingsButtonBottom)
-        val exitButtonTop = findViewById<ImageButton>(R.id.exitButtonTop)
-        val exitButtonBottom = findViewById<ImageButton>(R.id.exitButtonBottom)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
@@ -87,32 +64,32 @@ class ChessActivity : AppCompatActivity() {
             }
         })
 
-        exitButtonTop.setOnClickListener { confirmExit() }
-        exitButtonBottom.setOnClickListener { confirmExit() }
+        binding.exitButtonTop.setOnClickListener { confirmExit() }
+        binding.exitButtonBottom.setOnClickListener { confirmExit() }
 
-        chessView.onMoveListener = {
+        binding.chessView.onMoveListener = {
             updateUI()
-            if (timerEnabled && !chessView.game.isPromotionPending()) {
+            if (timerEnabled && !binding.chessView.game.isPromotionPending()) {
                 switchTimer()
             }
-            if (chessView.game.isGameOver) {
+            if (binding.chessView.game.isGameOver) {
                 stopTimers()
                 showWinnerDialog()
             }
         }
 
-        chessView.game.onPromotionRequired = { _, _ ->
+        binding.chessView.game.onPromotionRequired = { _, _ ->
             showPromotionDialog()
         }
 
-        resign1.setOnClickListener {
-            chessView.game.resign(Player.WHITE)
+        binding.resignButton1.setOnClickListener {
+            binding.chessView.game.resign(Player.WHITE)
             updateStatusAndStop()
             showWinnerDialog()
         }
 
-        resign2.setOnClickListener {
-            chessView.game.resign(Player.BLACK)
+        binding.resignButton2.setOnClickListener {
+            binding.chessView.game.resign(Player.BLACK)
             updateStatusAndStop()
             showWinnerDialog()
         }
@@ -122,16 +99,16 @@ class ChessActivity : AppCompatActivity() {
             settingsLauncher.launch(intent)
         }
         
-        settingsButtonTop.setOnClickListener { openSettings() }
-        settingsButtonBottom.setOnClickListener { openSettings() }
+        binding.settingsButtonTop.setOnClickListener { openSettings() }
+        binding.settingsButtonBottom.setOnClickListener { openSettings() }
 
         applySettings()
         resetGame()
     }
 
     private fun showWinnerDialog() {
-        val winner = chessView.game.winner
-        val isCheck = chessView.game.isInCheck(chessView.game.board, chessView.game.currentTurn)
+        val winner = binding.chessView.game.winner
+        val isCheck = binding.chessView.game.isInCheck(binding.chessView.game.board, binding.chessView.game.currentTurn)
         
         val title = if (winner != null) {
             if (isCheck) "Checkmate!" else "Resigned"
@@ -155,7 +132,7 @@ class ChessActivity : AppCompatActivity() {
     }
 
     private fun showPromotionDialog() {
-        val player = chessView.game.currentTurn
+        val player = binding.chessView.game.currentTurn
         
         val options = arrayOf("Queen", "Rook", "Bishop", "Knight")
         val types = arrayOf(PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT)
@@ -165,8 +142,8 @@ class ChessActivity : AppCompatActivity() {
         val adapter = object : ArrayAdapter<String>(this, R.layout.item_promotion, R.id.pieceName, options) {
             override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
                 val view = super.getView(position, convertView, parent)
-                val iconText = view.findViewById<TextView>(R.id.pieceIconText)
-                val text = view.findViewById<TextView>(R.id.pieceName)
+                val iconText = view.findViewById<android.widget.TextView>(R.id.pieceIconText)
+                val text = view.findViewById<android.widget.TextView>(R.id.pieceName)
                 
                 iconText.text = unicodes[position]
                 if (player == Player.WHITE) {
@@ -185,10 +162,10 @@ class ChessActivity : AppCompatActivity() {
         AlertDialog.Builder(this)
             .setTitle("Pawn Promotion")
             .setAdapter(adapter) { _, which ->
-                chessView.game.promotePawn(types[which])
-                chessView.invalidate()
+                binding.chessView.game.promotePawn(types[which])
+                binding.chessView.invalidate()
                 updateUI()
-                if (chessView.game.isGameOver) {
+                if (binding.chessView.game.isGameOver) {
                     stopTimers()
                     showWinnerDialog()
                 } else if (timerEnabled) {
@@ -206,36 +183,36 @@ class ChessActivity : AppCompatActivity() {
         timerEnabled = prefs.getBoolean("timer_enabled", true)
         timerDurationMinutes = prefs.getInt("timer_duration", 5)
         
-        chessView.isMirrorMode = mirrorMode
-        chessView.isPredictionEnabled = predictionEnabled
-        player2Layout.rotation = if (mirrorMode) 180f else 0f
+        binding.chessView.isMirrorMode = mirrorMode
+        binding.chessView.isPredictionEnabled = predictionEnabled
+        binding.player2Layout.rotation = if (mirrorMode) 180f else 0f
         
-        timerText1.visibility = if (timerEnabled) View.VISIBLE else View.GONE
-        timerText2.visibility = if (timerEnabled) View.VISIBLE else View.GONE
+        binding.player1Timer.visibility = if (timerEnabled) View.VISIBLE else View.GONE
+        binding.player2Timer.visibility = if (timerEnabled) View.VISIBLE else View.GONE
         
         updateUI()
-        chessView.invalidate()
+        binding.chessView.invalidate()
     }
 
     private fun updateUI() {
-        val status = chessView.getStatus()
-        statusTextTop.text = status
-        statusTextBottom.text = status
+        val status = binding.chessView.getStatus()
+        binding.statusTextTop.text = status
+        binding.statusTextBottom.text = status
         
         val prefs = getSharedPreferences("chess_prefs", MODE_PRIVATE)
         val mirrorMode = prefs.getBoolean("mirror_mode", true)
         
-        statusTextTop.rotation = if (mirrorMode) 180f else 0f
+        binding.statusTextTop.rotation = if (mirrorMode) 180f else 0f
     }
 
     private fun updateStatusAndStop() {
         updateUI()
         stopTimers()
-        chessView.invalidate()
+        binding.chessView.invalidate()
     }
 
     private fun resetGame() {
-        chessView.reset()
+        binding.chessView.reset()
         updateUI()
         
         timeLeft1 = timerDurationMinutes * 60 * 1000L
@@ -251,7 +228,7 @@ class ChessActivity : AppCompatActivity() {
 
     private fun switchTimer() {
         stopTimers()
-        if (chessView.game.currentTurn == Player.WHITE) {
+        if (binding.chessView.game.currentTurn == Player.WHITE) {
             startTimer1()
         } else {
             startTimer2()
@@ -265,7 +242,7 @@ class ChessActivity : AppCompatActivity() {
                 updateTimerTexts()
             }
             override fun onFinish() {
-                chessView.game.resign(Player.WHITE)
+                binding.chessView.game.resign(Player.WHITE)
                 updateStatusAndStop()
                 showWinnerDialog()
             }
@@ -279,7 +256,7 @@ class ChessActivity : AppCompatActivity() {
                 updateTimerTexts()
             }
             override fun onFinish() {
-                chessView.game.resign(Player.BLACK)
+                binding.chessView.game.resign(Player.BLACK)
                 updateStatusAndStop()
                 showWinnerDialog()
             }
@@ -292,8 +269,8 @@ class ChessActivity : AppCompatActivity() {
     }
 
     private fun updateTimerTexts() {
-        timerText1.text = "WHITE: ${formatTime(timeLeft1)}"
-        timerText2.text = "BLACK: ${formatTime(timeLeft2)}"
+        binding.player1Timer.text = "WHITE: ${formatTime(timeLeft1)}"
+        binding.player2Timer.text = "BLACK: ${formatTime(timeLeft2)}"
     }
 
     private fun formatTime(millis: Long): String {

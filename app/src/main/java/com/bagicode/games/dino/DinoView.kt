@@ -37,6 +37,7 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 //    private val cactusBitmap =
 //        BitmapFactory.decodeResource(resources, R.drawable.cactus)
     private var frame = 0
+    private var lastTime = System.currentTimeMillis()
 
     init {
         paint.typeface = Typeface.DEFAULT_BOLD
@@ -66,7 +67,8 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             return
         }
 
-        updateGame()
+        // updateGame()
+        updateRefreshRate()
         drawGround(canvas)
         drawDino(canvas)
         drawObstacles(canvas)
@@ -77,12 +79,28 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         }
     }
 
-    private fun updateGame() {
+    private fun updateRefreshRate() {
+        val currentTime = System.currentTimeMillis()
+
+        val deltaTime =
+            (currentTime - lastTime) / 1000f
+
+        lastTime = currentTime
+
+
+        updateGame(deltaTime)
+    }
+
+    private fun updateGame(deltaTime: Float) {
         if (!isPlaying) return
 
+        // Update Dino tergantung FPS device
+//        dinoVelocity += gravity
+//        dinoY += dinoVelocity
         // Update Dino
-        dinoVelocity += gravity
-        dinoY += dinoVelocity
+        dinoVelocity += gravity * deltaTime * 60
+        dinoY += dinoVelocity * deltaTime * 60
+
         if (dinoY >= groundY) {
             dinoY = groundY
             dinoVelocity = 0f
@@ -111,7 +129,11 @@ class DinoView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         val iterator = obstacles.iterator()
         while (iterator.hasNext()) {
             val obs = iterator.next()
-            obs.offset(-gameSpeed, 0f)
+//            obs.offset(-gameSpeed, 0f)
+            obs.offset(
+                -gameSpeed * deltaTime * 60,
+                0f
+            )
             
             // Collision Detection
             val dinoRect = RectF(width * 0.2f, dinoY - dinoSize, width * 0.2f + dinoSize, dinoY)

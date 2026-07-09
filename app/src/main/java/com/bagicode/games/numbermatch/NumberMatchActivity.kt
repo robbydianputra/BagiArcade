@@ -3,28 +3,24 @@ package com.bagicode.games.numbermatch
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.widget.ImageButton
-import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.bagicode.games.R
+import com.bagicode.games.databinding.ActivityNumberMatchBinding
 
 class NumberMatchActivity : AppCompatActivity() {
 
-    private lateinit var gameNumberView: NumberCanvasView
-    private lateinit var tvTarget: TextView
-
+    private lateinit var binding: ActivityNumberMatchBinding
     private val handler = Handler(Looper.getMainLooper())
 
     private val regenerateRunnable = object : Runnable {
         override fun run() {
             // 🔥 RE-RANDOM POSISI ANGKA
             val randomDraft = randomDraftNumber()
-            gameNumberView.setTargetNumber(randomDraft)
-            tvTarget.setText("Ayo temukan Angka $randomDraft kecil pada $randomDraft besar")
+            binding.gameNumberView.setTargetNumber(randomDraft)
+            binding.tvTarget.text = "Ayo temukan Angka $randomDraft kecil pada $randomDraft besar"
 
             // 🔁 ulang 30 detik lagi
             handler.postDelayed(this, 60_000)
@@ -34,20 +30,17 @@ class NumberMatchActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_number_match)
+        binding = ActivityNumberMatchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        tvTarget = findViewById<TextView>(R.id.tvTarget)
-        gameNumberView = findViewById<NumberCanvasView>(R.id.gameNumberView)
-        val exitButton = findViewById<ImageButton>(R.id.exitButton)
-
-        gameNumberView.setTargetNumber(1)
-        gameNumberView.setGameListener(
+        binding.gameNumberView.setTargetNumber(1)
+        binding.gameNumberView.setGameListener(
             object : NumberCanvasView.GameListener {
                 override fun onGameComplete() {
                     stopTimer()
@@ -56,7 +49,7 @@ class NumberMatchActivity : AppCompatActivity() {
             }
         )
 
-        exitButton.setOnClickListener { confirmExit() }
+        binding.exitButton.setOnClickListener { confirmExit() }
 
         startTimer()
     }
@@ -74,8 +67,8 @@ class NumberMatchActivity : AppCompatActivity() {
             .setCancelable(false)
             .setPositiveButton("Next"){ dialog, _ ->
                 dialog.dismiss()
-                tvTarget.setText("Ayo temukan Angka $randomDraft kecil pada $randomDraft besar")
-                gameNumberView.setTargetNumber(randomDraft)
+                binding.tvTarget.text = "Ayo temukan Angka $randomDraft kecil pada $randomDraft besar"
+                binding.gameNumberView.setTargetNumber(randomDraft)
                 startTimer()
             }
             .show()

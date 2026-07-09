@@ -2,13 +2,11 @@ package com.bagicode.games
 
 import android.content.Intent
 import android.os.Bundle
-import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.bagicode.games.chess.ChessActivity
 import com.bagicode.games.chess.adapter.GameAdapter
 import com.bagicode.games.chess.model.GameMenu
@@ -20,9 +18,11 @@ import com.bagicode.games.numbermatch.NumberMatchActivity
 import com.bagicode.games.numbersearch.NumberSearchActivity
 import com.bagicode.games.writing.WritingActivity
 import com.bagicode.games.shapematch.ShapeMatchActivity
+import com.bagicode.games.databinding.ActivityHomeBinding
 
 class HomeActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityHomeBinding
     private lateinit var adapter: GameAdapter
     private lateinit var allGames: List<GameMenu>
     private var isGridView = false
@@ -30,11 +30,9 @@ class HomeActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_home)
-
-        val recyclerView = findViewById<RecyclerView>(R.id.menuRecyclerView)
-        val searchView = findViewById<SearchView>(R.id.searchView)
-        val layoutButton = findViewById<ImageButton>(R.id.layoutToggleButton)
+        
+        binding = ActivityHomeBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         allGames = listOf(
             GameMenu(
@@ -98,10 +96,10 @@ class HomeActivity : AppCompatActivity() {
             startActivity(intent)
         }
         
-        recyclerView.layoutManager = LinearLayoutManager(this)
-        recyclerView.adapter = adapter
+        binding.menuRecyclerView.layoutManager = LinearLayoutManager(this)
+        binding.menuRecyclerView.adapter = adapter
 
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+        binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean = false
             override fun onQueryTextChange(newText: String?): Boolean {
                 filterGames(newText)
@@ -109,14 +107,14 @@ class HomeActivity : AppCompatActivity() {
             }
         })
 
-        layoutButton.setOnClickListener {
+        binding.layoutToggleButton.setOnClickListener {
             isGridView = !isGridView
             if (isGridView) {
-                recyclerView.layoutManager = GridLayoutManager(this, 2)
-                layoutButton.setImageResource(R.drawable.ic_view_list)
+                binding.menuRecyclerView.layoutManager = GridLayoutManager(this, 2)
+                binding.layoutToggleButton.setImageResource(R.drawable.ic_view_list)
             } else {
-                recyclerView.layoutManager = LinearLayoutManager(this)
-                layoutButton.setImageResource(R.drawable.ic_view_grid)
+                binding.menuRecyclerView.layoutManager = LinearLayoutManager(this)
+                binding.layoutToggleButton.setImageResource(R.drawable.ic_view_grid)
             }
             adapter.isGridView = isGridView
         }

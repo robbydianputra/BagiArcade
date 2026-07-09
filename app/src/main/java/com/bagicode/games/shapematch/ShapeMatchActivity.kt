@@ -1,35 +1,32 @@
 package com.bagicode.games.shapematch
 
 import android.os.Bundle
-import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import com.bagicode.games.R
+import com.bagicode.games.databinding.ActivityShapeMatchBinding
 
 class ShapeMatchActivity : AppCompatActivity() {
 
-    private lateinit var shapeMatchView: ShapeMatchView
+    private lateinit var binding: ActivityShapeMatchBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_shape_match)
+        binding = ActivityShapeMatchBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
-        shapeMatchView = findViewById(R.id.shapeMatchView)
-        val exitButton = findViewById<ImageButton>(R.id.exitButton)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+        ViewCompat.setOnApplyWindowInsetsListener(binding.main) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
 
-        exitButton.setOnClickListener { confirmExit() }
+        binding.exitButton.setOnClickListener { confirmExit() }
 
-        shapeMatchView.onAllMatched = {
+        binding.shapeMatchView.onAllMatched = {
             showSuccessDialog()
         }
     }
@@ -39,7 +36,7 @@ class ShapeMatchActivity : AppCompatActivity() {
             .setTitle("Bagus!")
             .setMessage("Kamu berhasil mencocokkan semua bentuk!")
             .setPositiveButton("Lanjut") { _, _ ->
-                shapeMatchView.nextLevel()
+                binding.shapeMatchView.nextLevel()
             }
             .setCancelable(false)
             .show()
