@@ -29,11 +29,12 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
     private val enemies = mutableListOf<RectF>()
     private val enemyColors = listOf(Color.RED, Color.GREEN, Color.YELLOW, Color.MAGENTA, Color.CYAN)
     private val enemyColorMap = mutableMapOf<RectF, Int>()
-    private var gameSpeed = 15f
-    private var enemySpawnTimer = 0
     
-    private var lastOccupiedLanes = mutableSetOf<Int>()
-
+    // Speed control (Time-based)
+    private var lastFrameTime = 0L
+    private var gameSpeed = 800f // Pixels per second
+    private var enemySpawnTimer = 0f
+    
     var onGameOver: ((Int) -> Unit)? = null
     var onScoreUpdate: ((Int) -> Unit)? = null
 
@@ -44,10 +45,11 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
     fun startGame() {
         isPlaying = true
         score = 0
-        gameSpeed = 15f
+        gameSpeed = 800f
         enemies.clear()
         enemyColorMap.clear()
-        lastOccupiedLanes.clear()
+        enemySpawnTimer = 0f
+        lastFrameTime = System.currentTimeMillis()
         carX = width / 2f - carWidth / 2f
         invalidate()
     }
@@ -56,7 +58,6 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
         super.onSizeChanged(w, h, oldw, oldh)
         roadWidth = w.toFloat()
         laneWidth = roadWidth / laneCount
-        // Make car slightly narrower to give more breathing room in the lane
         carWidth = laneWidth * 0.5f
         carHeight = carWidth * 1.8f
         carX = w / 2f - carWidth / 2f
@@ -66,9 +67,14 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
         
+        val currentTime = System.currentTimeMillis()
+        val deltaTime = (currentTime - lastFrameTime) / 1000f // in seconds
+        lastFrameTime = currentTime
+
         drawRoad(canvas)
+        
         if (isPlaying) {
-            updateGame()
+            updateGame(deltaTime)
             drawEnemies(canvas)
             drawPlayerCar(canvas)
             invalidate()
@@ -81,15 +87,15 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
         }
     }
 
-    private fun updateGame() {
-        roadOffset = (roadOffset + gameSpeed) % (height / 4f)
+    private fun updateGame(dt: Float) {
+        // Road scroll
+        roadOffset = (roadOffset + gameSpeed * dt) % (height / 4f)
 
-        enemySpawnTimer--
+        // Spawn logic
+        enemySpawnTimer -= dt
         if (enemySpawnTimer <= 0) {
-            // Check if there are any enemies close to the top to avoid overlapping waves
             val topEnemy = enemies.minByOrNull { it.top }
-            if (topEnemy == null || topEnemy.top > carHeight * 1.5f) {
-                // Guarantee at least one free lane
+            if (topEnemy == null || topEnemy.top > carHeight * 2f) {
                 val carsToSpawn = if (Random.nextBoolean()) 1 else 2
                 val availableLanes = (0 until laneCount).toMutableList()
                 
@@ -103,16 +109,16 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
                     enemies.add(enemy)
                     enemyColorMap[enemy] = enemyColors[Random.nextInt(enemyColors.size)]
                 }
-                
-                // Increase timer to ensure more vertical space between rows
-                enemySpawnTimer = (50 + Random.nextInt(30)).coerceAtLeast((1200 / gameSpeed).toInt())
+                // Next spawn in ~1-2 seconds (adjusted by speed)
+                enemySpawnTimer = (1.5f + Random.nextFloat()) * (800f / gameSpeed)
             }
         }
 
+        // Movement
         val iterator = enemies.iterator()
         while (iterator.hasNext()) {
             val enemy = iterator.next()
-            enemy.offset(0f, gameSpeed)
+            enemy.offset(0f, gameSpeed * dt)
 
             val playerRect = RectF(carX, carY, carX + carWidth, carY + carHeight)
             if (RectF.intersects(playerRect, enemy)) {
@@ -125,7 +131,7 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
                 enemyColorMap.remove(enemy)
                 score++
                 onScoreUpdate?.invoke(score)
-                if (score % 5 == 0) gameSpeed += 0.5f
+                if (score % 5 == 0) gameSpeed += 50f
             }
         }
     }
@@ -216,7 +222,6 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
                 if (!isPlaying) {
                     startGame()
                 } else {
-                    // Check if player clicked a lane to jump there
                     val clickedLane = (event.x / laneWidth).toInt()
                     if (clickedLane in 0 until laneCount) {
                         carX = clickedLane * laneWidth + (laneWidth - carWidth) / 2f
@@ -225,7 +230,6 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
             }
             MotionEvent.ACTION_MOVE -> {
                 if (isPlaying) {
-                    // Manual drag listener
                     carX = event.x - carWidth / 2f
                     if (carX < 0) carX = 0f
                     if (carX > width - carWidth) carX = width - carWidth
