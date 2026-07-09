@@ -56,7 +56,8 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
         super.onSizeChanged(w, h, oldw, oldh)
         roadWidth = w.toFloat()
         laneWidth = roadWidth / laneCount
-        carWidth = laneWidth * 0.6f
+        // Make car slightly narrower to give more breathing room in the lane
+        carWidth = laneWidth * 0.5f
         carHeight = carWidth * 1.8f
         carX = w / 2f - carWidth / 2f
         carY = h * 0.8f
@@ -85,23 +86,27 @@ class CarRaceView(context: Context, attrs: AttributeSet?) : View(context, attrs)
 
         enemySpawnTimer--
         if (enemySpawnTimer <= 0) {
-            // Guarantee at least one free lane
-            // We'll spawn 1 or 2 cars, but never 3 in the same 'wave'
-            val carsToSpawn = if (Random.nextBoolean()) 1 else 2
-            val availableLanes = (0 until laneCount).toMutableList()
-            
-            for (i in 0 until carsToSpawn) {
-                if (availableLanes.isEmpty()) break
-                val laneIdx = Random.nextInt(availableLanes.size)
-                val lane = availableLanes.removeAt(laneIdx)
+            // Check if there are any enemies close to the top to avoid overlapping waves
+            val topEnemy = enemies.minByOrNull { it.top }
+            if (topEnemy == null || topEnemy.top > carHeight * 1.5f) {
+                // Guarantee at least one free lane
+                val carsToSpawn = if (Random.nextBoolean()) 1 else 2
+                val availableLanes = (0 until laneCount).toMutableList()
                 
-                val left = lane * laneWidth + (laneWidth - carWidth) / 2f
-                val enemy = RectF(left, -carHeight, left + carWidth, 0f)
-                enemies.add(enemy)
-                enemyColorMap[enemy] = enemyColors[Random.nextInt(enemyColors.size)]
+                for (j in 0 until carsToSpawn) {
+                    if (availableLanes.isEmpty()) break
+                    val laneIdx = Random.nextInt(availableLanes.size)
+                    val lane = availableLanes.removeAt(laneIdx)
+                    
+                    val left = lane * laneWidth + (laneWidth - carWidth) / 2f
+                    val enemy = RectF(left, -carHeight, left + carWidth, 0f)
+                    enemies.add(enemy)
+                    enemyColorMap[enemy] = enemyColors[Random.nextInt(enemyColors.size)]
+                }
+                
+                // Increase timer to ensure more vertical space between rows
+                enemySpawnTimer = (50 + Random.nextInt(30)).coerceAtLeast((1200 / gameSpeed).toInt())
             }
-            
-            enemySpawnTimer = (35 + Random.nextInt(25)).coerceAtMost((1800 / gameSpeed).toInt())
         }
 
         val iterator = enemies.iterator()
