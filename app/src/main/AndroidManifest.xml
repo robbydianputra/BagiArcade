@@ -32,6 +32,7 @@
         <activity android:name=".numbersearch.NumberSearchActivity" />
         <activity android:name=".writing.WritingActivity" />
         <activity android:name=".dino.DinoActivity" />
+        <activity android:name=".carrace.CarRaceActivity" />
 
     </application>
 

@@ -18,6 +18,7 @@ import com.bagicode.games.numbermatch.NumberMatchActivity
 import com.bagicode.games.numbersearch.NumberSearchActivity
 import com.bagicode.games.writing.WritingActivity
 import com.bagicode.games.shapematch.ShapeMatchActivity
+import com.bagicode.games.carrace.CarRaceActivity
 import com.bagicode.games.databinding.ActivityHomeBinding
 
 class HomeActivity : AppCompatActivity() {
@@ -86,8 +87,14 @@ class HomeActivity : AppCompatActivity() {
             GameMenu(
                 title = "Dino",
                 description = "dino rules",
-                iconRes = R.drawable.ic_chess,
+                iconRes = R.mipmap.ic_launcher,
                 activityClass = DinoActivity::class.java
+            ),
+            GameMenu(
+                title = "Car Race",
+                description = "Avoid obstacles and race to the finish",
+                iconRes = R.mipmap.ic_launcher,
+                activityClass = CarRaceActivity::class.java
             ),
         )
 
