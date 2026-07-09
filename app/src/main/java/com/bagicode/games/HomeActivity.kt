@@ -113,13 +113,13 @@ class HomeActivity : AppCompatActivity() {
             GameMenu(
                 title = "Dino",
                 description = "dino rules",
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.ic_dino_run,
                 activityClass = DinoActivity::class.java
             ),
             GameMenu(
                 title = "Car Race",
                 description = "Avoid obstacles and race to the finish",
-                iconRes = R.mipmap.ic_launcher,
+                iconRes = R.drawable.ic_car_race,
                 activityClass = CarRaceActivity::class.java
             ),
         )
