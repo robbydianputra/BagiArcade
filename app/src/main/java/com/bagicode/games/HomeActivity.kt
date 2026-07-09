@@ -126,7 +126,7 @@ class HomeActivity : AppCompatActivity() {
             GameMenu(
                 title = "Maze",
                 description = "lets go home",
-                iconRes = R.mipmap.ic_launcher_round,
+                iconRes = R.drawable.ic_maze,
                 activityClass = MazeActivity::class.java
             ),
         )
