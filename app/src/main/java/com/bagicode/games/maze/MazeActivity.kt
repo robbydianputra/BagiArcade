@@ -1,6 +1,7 @@
 package com.bagicode.games.maze
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Canvas
@@ -17,6 +18,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -53,12 +56,39 @@ data class MazeWall(val startX: Int, val startY: Int, val endX: Int, val endY: I
 @Composable
 fun MazeGameScreen() {
     val gridSize = 8 // Labirin berukuran 8x8 kotak
+    val context = LocalContext.current
 
-    // State untuk menyimpan daftar dinding labirin yang di-generate acak
+    // State untuk menyimpan daftar dinding labirin yang di-generate acak (pasti ada jalan keluar)
     var mazeWalls by remember { mutableStateOf(generateRandomMaze(gridSize)) }
 
     // State untuk mencatat titik-titik garis coretan tangan anak
     val drawPoints = remember { mutableStateListOf<Offset>() }
+
+    // State bantuan untuk mencatat ukuran piksel canvas asli secara real-time
+    var canvasSize by remember { mutableStateOf(Offset.Zero) }
+
+    // State pemicu munculnya dialog menang
+    var showWinDialog by remember { mutableStateOf(false) }
+
+    // Tampilkan dialog jika anak berhasil mencapai rumah
+    if (showWinDialog) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text("Hore, Kamu Menang! 🎉") },
+            text = { Text("Hebat sekali! Kamu berhasil membantu anak menemukan jalan pulang ke rumah tanpa menabrak tembok.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showWinDialog = false
+                        mazeWalls = generateRandomMaze(gridSize) // Acak rute baru otomatis
+                        drawPoints.clear() // Bersihkan coretan lama
+                    }
+                ) {
+                    Text("Main Lagi 🎲")
+                }
+            }
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -81,19 +111,76 @@ fun MazeGameScreen() {
                 .fillMaxWidth()
                 .aspectRatio(1f) // Mengunci rasio kotak sempurna (1:1)
                 .background(Color.White)
-                .pointerInput(Unit) {
-                    // Deteksi usapan jari anak untuk menggambar garis coretan bebas
+                .pointerInput(mazeWalls, canvasSize) { // Reset gesture jika rute labirin diacak ulang
+                    if (canvasSize == Offset.Zero) return@pointerInput
+
+                    val cellWidth = canvasSize.x / gridSize
+                    val cellHeight = canvasSize.y / gridSize
+
+                    // Deteksi usapan jari anak untuk menggambar garis
                     detectDragGestures(
                         onDragStart = { offset ->
-                            drawPoints.add(offset)
+                            // Validasi awal: Harus mulai mengusap dari area dekat Anak (Pojok Kiri Bawah)
+                            val startAreaX = 0f..cellWidth
+                            val startAreaY = (gridSize - 1) * cellHeight..canvasSize.y
+
+                            if (offset.x in startAreaX && offset.y in startAreaY) {
+                                drawPoints.add(offset)
+                            } else {
+                                Toast.makeText(context, "Mulai dari posisi Anak (👦) dulu ya!", Toast.LENGTH_SHORT).show()
+                            }
                         },
                         onDrag = { change, _ ->
-                            drawPoints.add(change.position)
+                            val nextPoint = change.position
+
+                            // Abaikan usapan jika jari keluar dari batas layar kotak kanvas
+                            if (nextPoint.x !in 0f..canvasSize.x || nextPoint.y !in 0f..canvasSize.y) {
+                                return@detectDragGestures
+                            }
+
+                            if (drawPoints.isNotEmpty()) {
+                                val lastPoint = drawPoints.last()
+
+                                // 1. LOGIKA DETEKSI TABRAKAN TEMBOK
+                                var isHitWall = false
+                                for (wall in mazeWalls) {
+                                    val wStart = Offset(wall.startX * cellWidth, wall.startY * cellHeight)
+                                    val wEnd = Offset(wall.endX * cellWidth, wall.endY * cellHeight)
+
+                                    // Cek matematika apakah garis tarikan jari memotong garis dinding hitam
+                                    if (isLinesIntersecting(lastPoint, nextPoint, wStart, wEnd)) {
+                                        isHitWall = true
+                                        break
+                                    }
+                                }
+
+                                if (isHitWall) {
+                                    // Jika menabrak, coretan langsung terputus dan dihapus otomatis
+                                    Toast.makeText(context, "Aduh, nabrak tembok! ❌ Ulangi lagi.", Toast.LENGTH_SHORT).show()
+                                    drawPoints.clear()
+                                } else {
+                                    drawPoints.add(nextPoint)
+
+                                    // 2. LOGIKA DETEKSI SAMPAI TUJUAN (RUMAH)
+                                    // Rumah berada di Pojok Kanan Atas (Kotak koordinat X terakhir, Y awal)
+                                    val winAreaX = (gridSize - 1) * cellWidth..canvasSize.x
+                                    val winAreaY = 0f..cellHeight
+
+                                    if (nextPoint.x in winAreaX && nextPoint.y in winAreaY) {
+                                        showWinDialog = true
+                                    }
+                                }
+                            }
                         }
                     )
                 }
         ) {
             Canvas(modifier = Modifier.fillMaxSize()) {
+                // Catat resolusi piksel asli canvas secara dinamis saat pertama kali ter-render
+                if (canvasSize.x != size.width || canvasSize.y != size.height) {
+                    canvasSize = Offset(size.width, size.height)
+                }
+
                 val cellWidth = size.width / gridSize
                 val cellHeight = size.height / gridSize
 
@@ -114,22 +201,13 @@ fun MazeGameScreen() {
                 }
 
                 // 2. Gambar Dinding Labirin yang Menghadang Jalan (Garis Hitam Tebal)
-//                mazeWalls.forEach { wall ->
-//                    drawLine(
-//                        color = Color.Black,
-//                        start = Offset(wall.startX * cellWidth, wall.startY * cellHeight),
-//                        end = Offset(wall.endX * cellWidth, wall.endY * cellHeight),
-//                        strokeWidth = 8f,
-//                        cap = StrokeCap.Round
-//                    )
-//                }
                 mazeWalls.forEach { wall ->
                     drawLine(
                         color = Color.Black,
                         start = Offset(wall.startX * cellWidth, wall.startY * cellHeight),
                         end = Offset(wall.endX * cellWidth, wall.endY * cellHeight),
-                        strokeWidth = 8f,
-                        cap = StrokeCap.Square // DIUBAH DISINI: Supaya sudut pertemuan antar dinding kotak sempurna kaku
+                        strokeWidth = 10f,
+                        cap = StrokeCap.Square // Supaya sudut pertemuan antar dinding kotak sempurna kaku
                     )
                 }
 
@@ -140,7 +218,7 @@ fun MazeGameScreen() {
                             color = Color(0xFF1E88E5),
                             start = drawPoints[i],
                             end = drawPoints[i + 1],
-                            strokeWidth = 12f,
+                            strokeWidth = 14f,
                             cap = StrokeCap.Round
                         )
                     }
@@ -199,38 +277,6 @@ fun MazeGameScreen() {
     }
 }
 
-/**
- * Fungsi pembantu untuk membuat struktur dinding labirin acak berdasarkan algoritma Kruskal sederhana
- * Memastikan labirin selalu terhubung dan menghasilkan rute bervariasi setiap dipanggil
- */
-//fun generateRandomMaze(size: Int): List<MazeWall> {
-//    val walls = mutableListOf<MazeWall>()
-//
-//    // Masukkan semua kemungkinan batas dinding dalam grid kotak
-//    for (x in 0 until size) {
-//        for (y in 0 until size) {
-//            if (x < size - 1) walls.add(MazeWall(x + 1, y, x + 1, y + 1)) // Dinding Vertikal
-//            if (y < size - 1) walls.add(MazeWall(x, y + 1, x + 1, y + 1)) // Dinding Horizontal
-//        }
-//    }
-//
-//    // Acak urutan seluruh dinding pendukung
-//    walls.shuffle()
-//
-//    // Ambil sebagian besar susunan dinding acak untuk membentuk rute jalur labirin unik
-//    // Menyisakan jalan masuk di kiri bawah (0, size) dan pintu keluar di kanan atas (size, 0)
-//    val mazeStructure = walls.take((walls.size * 0.65).toInt()).toMutableList()
-//
-//    // Tambahkan bingkai pembatas luar labirin
-//    for (i in 0 until size) {
-//        if (i != 0) mazeStructure.add(MazeWall(0, i, 0, i + 1)) // Sisi Kiri
-//        if (i != size - 1) mazeStructure.add(MazeWall(size, i, size, i + 1)) // Sisi Kanan
-//        mazeStructure.add(MazeWall(i, 0, i + 1, 0)) // Sisi Atas
-//        mazeStructure.add(MazeWall(i, size, i + 1, size)) // Sisi Bawah
-//    }
-//
-//    return mazeStructure
-//}
 fun generateRandomMaze(size: Int): List<MazeWall> {
     val walls = mutableListOf<MazeWall>()
     val visited = Array(size) { BooleanArray(size) { false } }
@@ -288,5 +334,17 @@ fun generateRandomMaze(size: Int): List<MazeWall> {
     }
 
     return walls
+}
+
+/**
+ * Fungsi Matematika CCW (Counter-Clockwise) & Intersect
+ * Berguna memvalidasi apakah garis coretan memotong koordinat garis dinding hitam
+ */
+fun ccw(A: Offset, B: Offset, C: Offset): Boolean {
+    return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x)
+}
+
+fun isLinesIntersecting(p1: Offset, p2: Offset, p3: Offset, p4: Offset): Boolean {
+    return ccw(p1, p3, p4) != ccw(p2, p3, p4) && ccw(p1, p2, p3) != ccw(p1, p2, p4)
 }
 
