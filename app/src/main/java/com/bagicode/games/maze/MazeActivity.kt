@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -15,12 +16,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawingPadding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,12 +43,15 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 class MazeActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+
         setContent {
             MaterialTheme {
                 MazeGameScreen()
@@ -55,11 +65,13 @@ data class MazeWall(val startX: Int, val startY: Int, val endX: Int, val endY: I
 
 @Composable
 fun MazeGameScreen() {
-    val gridSize = 8 // Labirin berukuran 8x8 kotak
     val context = LocalContext.current
 
-    // State untuk menyimpan daftar dinding labirin yang di-generate acak (pasti ada jalan keluar)
-    var mazeWalls by remember { mutableStateOf(generateRandomMaze(gridSize)) }
+    // 1. UBAH gridSize MENJADI STATE (Mulai dari level awal: 6x6 atau 8x8)
+    var gridSize by remember { mutableStateOf(2) }
+
+    // 2. RE-GENERATE MAZE OTOMATIS SETIAP KALI gridSize BERUBAH
+    var mazeWalls by remember(gridSize) { mutableStateOf(generateRandomMaze(gridSize)) }
 
     // State untuk mencatat titik-titik garis coretan tangan anak
     val drawPoints = remember { mutableStateListOf<Offset>() }
@@ -74,14 +86,16 @@ fun MazeGameScreen() {
     if (showWinDialog) {
         AlertDialog(
             onDismissRequest = { },
-            title = { Text("Hore, Kamu Menang! 🎉") },
-            text = { Text("Hebat sekali! Kamu berhasil membantu anak menemukan jalan pulang ke rumah tanpa menabrak tembok.") },
+            title = { Text("Hore, Level Up! 🆙🎉") },
+            text = { Text("Hebat sekali! Labirin berikutnya akan menjadi lebih besar dan lebih menantang!") },
             confirmButton = {
                 Button(
                     onClick = {
                         showWinDialog = false
-                        mazeWalls = generateRandomMaze(gridSize) // Acak rute baru otomatis
                         drawPoints.clear() // Bersihkan coretan lama
+                        gridSize = if (gridSize == 8) 8 else gridSize + 1
+                        mazeWalls = generateRandomMaze(gridSize) // Mengacak ulang berdasarkan gridSize saat ini
+                        drawPoints.clear()
                     }
                 ) {
                     Text("Main Lagi 🎲")
@@ -94,16 +108,51 @@ fun MazeGameScreen() {
         modifier = Modifier
             .fillMaxSize()
             .background(Color(0xFFF9F9F9))
-            .padding(16.dp),
+            .safeDrawingPadding()
+            .padding(horizontal = 16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.SpaceBetween
     ) {
-        // Bagian Atas: Judul Instruksi
-        Text(
-            text = "Bantu Anak Menuju Rumah! 🏠🏃‍♂️",
-            fontSize = 24.sp,
-            modifier = Modifier.padding(top = 16.dp)
-        )
+
+        // Bagian Atas: Bar Judul & Tombol Back
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp, bottom = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Start
+        ) {
+            // 1. Tombol Back / Kembali
+            IconButton(
+                onClick = {
+                    // Menutup MazeActivity dan otomatis kembali ke HomeActivity
+                    (context as? android.app.Activity)?.finish()
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack, // Menggunakan ikon panah kiri bawaan Google
+                    contentDescription = "Tombol Kembali",
+                    tint = Color(0xFFE53935) // Mengubah warna ikon menjadi merah agar kontras
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            // 2. Judul Instruksi Game
+            Text(
+                text = "Bantu Anak 🏃‍♂️ Menuju Rumah 🏠",
+                fontSize = 16.sp,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                color = Color.DarkGray
+            )
+        }
+
+//        Text(
+//            text = "Gambarlah garis untuk menghubungkan 👦 dan 🏠",
+//            fontSize = 16.sp,
+//            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+//            color = Color.DarkGray
+//        )
 
         // Bagian Tengah: Canvas Labirin Utama
         Box(
@@ -225,23 +274,65 @@ fun MazeGameScreen() {
                 }
             }
 
-            // Tanda Posisi Mulai (Anak di pojok kiri bawah)
-            Text(
-                text = "👦",
-                fontSize = 32.sp,
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(4.dp)
-            )
+//            // Tanda Posisi Mulai (Anak di pojok kiri bawah)
+//            Text(
+//                text = "👦",
+//                fontSize = 32.sp,
+//                modifier = Modifier
+//                    .align(Alignment.BottomStart)
+//                    .padding(4.dp)
+//            )
+//
+//            // Tanda Posisi Selesai (Rumah di pojok kanan atas)
+//            Text(
+//                text = "🏠",
+//                fontSize = 32.sp,
+//                modifier = Modifier
+//                    .align(Alignment.TopEnd)
+//                    .padding(4.dp)
+//            )
 
-            // Tanda Posisi Selesai (Rumah di pojok kanan atas)
-            Text(
-                text = "🏠",
-                fontSize = 32.sp,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(4.dp)
-            )
+            // ================================================================
+            // LOGIKA HITUNG UKURAN DINDING / KOTAK SECARA DINAMIS
+            // ================================================================
+            val density = LocalDensity.current
+            if (canvasSize != Offset.Zero) {
+                val cellWidthPx = canvasSize.x / gridSize
+                val cellHeightPx = canvasSize.y / gridSize
+
+                // Konversi ukuran pixel kotak ke satuan DP untuk ukuran komponen
+                val cellWidthDp = with(density) { cellWidthPx.toDp() }
+                val cellHeightDp = with(density) { cellHeightPx.toDp() }
+
+                // Tentukan ukuran Text/Font (Kira-kira 60% dari tinggi kotak agar pas dan ada ruang bernapas)
+                val emojiFontSize = with(density) { (cellHeightPx * 0.6f).toSp() }
+
+                // Posisi Mulai Anak (👦): Pojok Kiri Bawah -> Kolom 0, Baris ke (gridSize - 1)
+                Box(
+                    modifier = Modifier
+                        .size(width = cellWidthDp, height = cellHeightDp)
+                        .offset(
+                            x = 0.dp,
+                            y = cellHeightDp * (gridSize - 1)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "👦", fontSize = emojiFontSize)
+                }
+
+                // Posisi Selesai Rumah (🏠): Pojok Kanan Atas -> Kolom ke (gridSize - 1), Baris 0
+                Box(
+                    modifier = Modifier
+                        .size(width = cellWidthDp, height = cellHeightDp)
+                        .offset(
+                            x = cellWidthDp * (gridSize - 1),
+                            y = 0.dp
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "🏠", fontSize = emojiFontSize)
+                }
+            }
         }
 
         // Bagian Bawah: Tombol Navigasi Aksi
@@ -257,22 +348,23 @@ fun MazeGameScreen() {
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE53935)),
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Hapus Garis ❌", fontSize = 16.sp, color = Color.White)
+                Text("Hapus Rute ❌", fontSize = 16.sp, color = Color.White)
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            // Tombol Next untuk Mengacak Rute/Labirin Baru
+            // Tombol Next untuk Mengacak Rute/Labirin Baru di level yang sama
             Button(
                 onClick = {
-                    mazeWalls = generateRandomMaze(gridSize) // Acak rute baru
-                    drawPoints.clear() // Hapus coretan otomatis saat ganti rute
+                    mazeWalls = generateRandomMaze(gridSize) // Mengacak ulang berdasarkan gridSize saat ini
+                    drawPoints.clear()
                 },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF4CAF50)),
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Rute Baru 🎲", fontSize = 16.sp, color = Color.White)
             }
+
         }
     }
 }
