@@ -3,9 +3,11 @@ package com.bagicode.games.ludo
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.animation.RotateAnimation
+import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
@@ -36,11 +38,14 @@ class LudoActivity : AppCompatActivity() {
         binding.exitButtonTop.setOnClickListener { confirmExit() }
         binding.exitButtonBottom.setOnClickListener { confirmExit() }
 
-        binding.diceImageView.setOnClickListener {
+        val diceClickListener = View.OnClickListener {
             if (binding.ludoView.game.canRollDice) {
                 showDiceRollDialog()
             }
         }
+        
+        binding.diceImageViewTop.setOnClickListener(diceClickListener)
+        binding.diceImageViewBottom.setOnClickListener(diceClickListener)
 
         binding.ludoView.onPieceSelected = { pieceId ->
             if (binding.ludoView.game.movePiece(pieceId)) {
@@ -61,10 +66,6 @@ class LudoActivity : AppCompatActivity() {
         showPlayerCountDialog()
     }
     
-    private fun updateDiceIcon(roll: Int) {
-        // Implementation remains same or could use binding if needed
-    }
-
     private fun showDiceRollDialog() {
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_dice, null)
         val diceView = dialogView.findViewById<DiceView>(R.id.dialogDiceView)
@@ -130,12 +131,32 @@ class LudoActivity : AppCompatActivity() {
     }
 
     private fun updateUI() {
-        val currentPlayer = binding.ludoView.game.players[binding.ludoView.game.currentTurnIndex]
+        val game = binding.ludoView.game
+        val currentPlayer = game.players[game.currentTurnIndex]
         val status = "Turn: $currentPlayer"
         binding.statusTextTop.text = status
         binding.statusTextBottom.text = status
         
-        binding.diceImageView.alpha = if (binding.ludoView.game.canRollDice) 1.0f else 0.5f
+        // Logic to move dice:
+        // RED and GREEN are Top players.
+        // YELLOW and BLUE are Bottom players.
+        if (currentPlayer == LudoPlayer.RED || currentPlayer == LudoPlayer.GREEN) {
+            binding.diceImageViewTop.visibility = View.VISIBLE
+            binding.diceImageViewBottom.visibility = View.INVISIBLE
+            binding.diceImageViewTop.alpha = if (game.canRollDice) 1.0f else 0.5f
+
+            val params = binding.diceImageViewTop.layoutParams as LinearLayout.LayoutParams
+            params.gravity = if(currentPlayer == LudoPlayer.RED) Gravity.END else Gravity.START
+            binding.diceImageViewTop.layoutParams = params
+        } else {
+            binding.diceImageViewTop.visibility = View.INVISIBLE
+            binding.diceImageViewBottom.visibility = View.VISIBLE
+            binding.diceImageViewBottom.alpha = if (game.canRollDice) 1.0f else 0.5f
+
+            val params = binding.diceImageViewTop.layoutParams as LinearLayout.LayoutParams
+            params.gravity = if(currentPlayer == LudoPlayer.BLUE) Gravity.START else Gravity.END
+            binding.diceImageViewBottom.layoutParams = params
+        }
     }
 
     private fun confirmExit() {

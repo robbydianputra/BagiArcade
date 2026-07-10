@@ -100,18 +100,6 @@ class HomeActivity : AppCompatActivity() {
                 activityClass = TicTacToeActivity::class.java
             ),
             GameMenu(
-                title = "Ludo",
-                description = "Classic race game for 2 players",
-                iconRes = R.drawable.ic_ludo,
-                activityClass = LudoActivity::class.java
-            ),
-            GameMenu(
-                title = "Chess",
-                description = "2 Player Local PvP with standard rules",
-                iconRes = R.drawable.ic_chess,
-                activityClass = ChessActivity::class.java
-            ),
-            GameMenu(
                 title = "Dino",
                 description = "dino rules",
                 iconRes = R.drawable.ic_dino_run,
@@ -128,6 +116,18 @@ class HomeActivity : AppCompatActivity() {
                 description = "lets go home",
                 iconRes = R.drawable.ic_maze,
                 activityClass = MazeActivity::class.java
+            ),
+            GameMenu(
+                title = "Ludo",
+                description = "Classic race game for 2 players",
+                iconRes = R.drawable.ic_ludo,
+                activityClass = LudoActivity::class.java
+            ),
+            GameMenu(
+                title = "Chess",
+                description = "2 Player Local PvP with standard rules",
+                iconRes = R.drawable.ic_chess,
+                activityClass = ChessActivity::class.java
             ),
         )
 
